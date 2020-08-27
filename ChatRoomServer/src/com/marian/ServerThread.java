@@ -116,7 +116,7 @@ public class ServerThread implements Runnable {
             return false;
         }
 
-        if (database.isRegisteredByUsername(username,password)){
+        if (database.isRegisteredForLogin(username,password)){
             System.out.println("User "+ username + " has logged in.");
 
             int id =  database.getId(username,password);
@@ -165,7 +165,7 @@ public class ServerThread implements Runnable {
             return false;
         }
 
-        if(database.add(nickName,userName,password)) {
+        if(database.checkUserAndAdd(nickName,userName,password)) {
             System.out.println("Adding user data to database " + userName);
 
             try(OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream())){
