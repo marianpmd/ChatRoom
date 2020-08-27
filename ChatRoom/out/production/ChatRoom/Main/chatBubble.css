@@ -1,0 +1,8 @@
+.label{
+    /*-fx-shape: "M100,100 h200 a20,20 0 0 1 20,20 v200 a20,20 0 0 1 -20,20 h-200 a20,20 0 0 1 -20,-20 v-200 a20,20 0 0 1 20,-20 z";
+    -fx-background-color: black, white;
+    -fx-background-insets: 0,1;
+    -fx-padding: 50;*/
+    -fx-text-fill:#03fcf0;
+
+}

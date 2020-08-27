@@ -1,0 +1,37 @@
+.root{
+
+       -fx-background-color : #033249;
+       -fx-background-size : 100%;
+
+}
+
+.button{
+-fx-background-color : #03fcf0;
+}
+
+.text-input{
+-fx-background-color : grey;
+}
+
+#listView{
+-fx-border-color: #03fcf0;
+-fx-background-color: #033249;
+-fx-cell-color : grey;
+}
+
+.list-view .list-cell:even {
+-fx-background-color: transparent;
+-fx-text-fill: black;
+}
+.list-view .list-cell:odd {
+-fx-background-color: transparent;
+-fx-text-fill: black;
+}
+
+/*#username{
+-fx-background-color : grey;
+}
+#password{
+-fx-background-color : grey;
+}*/
+
