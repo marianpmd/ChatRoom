@@ -12,21 +12,21 @@ public class PasswordHarsher {
     public PasswordHarsher() {
     }
 
-    public String hash(String password){
-
+    public String hash(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            /*String beforeSalt = Arrays.toString(hash);*/
-            StringBuilder sb= new StringBuilder(Arrays.toString(hash));
-            sb.append(salt);
-            byte[]reHash= digest.digest(sb.toString().getBytes(StandardCharsets.UTF_8));
-            return Arrays.toString(reHash);
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            StringBuilder hexString = new StringBuilder();
 
-        } catch (NoSuchAlgorithmException e) {
-        e.printStackTrace();
+            for (int i = 0; i < hash.length; i++) {
+                String hex = Integer.toHexString(0xff & hash[i]);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            return hexString.toString();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
         }
-        return null;
     }
-
 }
