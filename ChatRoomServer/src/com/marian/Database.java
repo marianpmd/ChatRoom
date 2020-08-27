@@ -4,8 +4,10 @@ import java.sql.*;
 
 public class Database {
     private Connection connection ;
+    private PasswordHarsher passwordHarsher = new PasswordHarsher();
+
     public static final String DB_NAME= "ChatRoomDatabase.db";
-    public static final String CONNECTION_STRING = "jdbc:sqlite:C:\\Users\\Marian\\Desktop\\ProjectFiles\\TCP-IPConnectionServer\\ChatRoomServer\\src\\" + DB_NAME;
+    public static final String CONNECTION_STRING = "jdbc:sqlite:C:\\Users\\Marian\\Desktop\\Server-Client App\\ChatRoomServer\\src\\" + DB_NAME;
     public static final String TABLE_USERS = "users";
     public static final String COLUMN_ID="id";
     public static final String COLUMN_NICKNAME = "nickname";
@@ -32,6 +34,7 @@ public class Database {
     public static final String  SELECT_NICKNAME_FROM_USERS = "SELECT " + COLUMN_NICKNAME +
             " FROM " + TABLE_USERS +
             " WHERE " + COLUMN_USERNAME +  " =?" + " AND " + COLUMN_PASSWORD + " =?";
+
 
     public boolean open(){
         try{
@@ -70,8 +73,8 @@ public class Database {
     public boolean isRegisteredByUsername(String username ,String password){
         try(PreparedStatement statement = connection.prepareStatement(SELECT_USER_AND_PASSWORD_QUERY)){
             statement.setString(1,username);
-            PasswordHasher passwordHasher = new PasswordHasher();
-            String hashedPassword = passwordHasher.hash(password);
+            PasswordHarsher passwordHarsher = new PasswordHarsher();
+            String hashedPassword = passwordHarsher.hash(password);
             statement.setString(2,hashedPassword);
             try(ResultSet results = statement.executeQuery()){
 
@@ -91,11 +94,11 @@ public class Database {
         return false;
     }
 
+// FIXME: 8/27/2020 im working here
     public boolean add(String nickname , String username , String password){
         if (!isRegistered(nickname,username)){
             try(PreparedStatement insertData = connection.prepareStatement(INSERT_USER_QUERY)) {
-                PasswordHasher passwordManager = new PasswordHasher();
-                String hashedPassword = passwordManager.hash(password);
+                String hashedPassword = passwordHarsher.hash(password);
                 insertData.setString(1,nickname);
                 insertData.setString(2,username);
                 insertData.setString(3,hashedPassword);
@@ -126,8 +129,8 @@ public class Database {
 
         try(PreparedStatement getID = connection.prepareStatement(SELECT_ID_FROM_USERS)) {
             getID.setString(1,username);
-            PasswordHasher passwordHasher = new PasswordHasher();
-            getID.setString(2,passwordHasher.hash(password));
+            PasswordHarsher passwordHarsher = new PasswordHarsher();
+            getID.setString(2, passwordHarsher.hash(password));
             getID.execute();
             try(ResultSet results = getID.executeQuery() ){
                 int id = results.getInt(1);
@@ -146,8 +149,8 @@ public class Database {
 
         try(PreparedStatement getID = connection.prepareStatement(SELECT_NICKNAME_FROM_USERS)) {
             getID.setString(1,username);
-            PasswordHasher passwordHasher = new PasswordHasher();
-            getID.setString(2,passwordHasher.hash(password));
+            PasswordHarsher passwordHarsher = new PasswordHarsher();
+            getID.setString(2, passwordHarsher.hash(password));
             getID.execute();
             try(ResultSet results = getID.executeQuery() ){
                 String value = results.getString(1);

@@ -40,7 +40,7 @@ public class Register {
     private byte registerRequestProtocol = 1;
     private static Socket socket ;
     private static InetAddress address;
-    private String DNS = "adns";
+    private String DNS = "marianchatroom.go.ro";
 
 
 
