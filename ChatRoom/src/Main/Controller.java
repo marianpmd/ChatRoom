@@ -47,7 +47,7 @@ public class Controller {
     @FXML
     private TextArea textArea;
 
-    private static String DNS = "marianchatroom.go.ro";
+    private static String DNS = "adns";
     private byte loginRequestProtocol = 2;
     private static Socket socket;
     private static boolean wasRegistered = false;
