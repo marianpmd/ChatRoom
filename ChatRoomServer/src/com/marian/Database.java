@@ -39,7 +39,6 @@ public class Database {
     public boolean open(){
         try{
             connection = DriverManager.getConnection(CONNECTION_STRING);
-           /* insertData = connection.prepareCall(INSERT_USER_QUERY);*/
             return true;
         }catch (SQLException e){
             e.printStackTrace();
