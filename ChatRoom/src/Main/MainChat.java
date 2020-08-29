@@ -73,7 +73,7 @@ public class MainChat {
             e.printStackTrace();
         }
 
-        sendMessage("Welcome to ChatRoom, for a list of commands type /commands. ");
+        printInChat("Welcome to ChatRoom, for a list of commands type /commands. ");
         MessagingManager obs = new MessagingManager(socket);
         Listener listener = new Listener();
         obs.register(listener);
@@ -93,7 +93,7 @@ public class MainChat {
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
-                                sendMessage(listener.getValue());
+                                printInChat(listener.getValue());
                                 listener.setValue(null);
                             }
                         });
@@ -124,11 +124,13 @@ public class MainChat {
 
 
     }
-    public void sendMessage(String message){
-        String toPrint = message.replaceAll("\n", "");
-        vBox.heightProperty().addListener(observable -> scrollPane.setVvalue(1D));
+    public void printInChat(String message){
 
-        Label label = new Label();
+        if (message!=null){
+            String toPrint = message.replaceAll("\n", "");
+            vBox.heightProperty().addListener(observable -> scrollPane.setVvalue(1D));
+
+            Label label = new Label();
             label.setAlignment(Pos.CENTER_LEFT);
             label.setTextAlignment(TextAlignment.LEFT);
             label.setFont(Font.font(18));
@@ -137,7 +139,7 @@ public class MainChat {
             label.setText(toPrint);
             vBox.setNodeOrientation(NodeOrientation.LEFT_TO_RIGHT);
             vBox.getChildren().add(label);
-
+        }
     }
     public void requestPublicUserData() throws IOException {
         currentUser.setId(in.read());
@@ -175,20 +177,18 @@ public class MainChat {
 
     public void onSendButtonPress(ActionEvent event) throws IOException {
         String message = textArea.getText();
-        if (message.startsWith("/")){
+
+        if (message.isBlank() || message.equals("\n")) {
+            printInChat(null);
+            textArea.setText(null);
+        }else if (message.startsWith("/")){
             performAction(message);
             textArea.setText(null);
         }else {
-
             StringBuilder messageAndName = new StringBuilder();
             messageAndName.append(currentUser.getName());
             messageAndName.append(" : ").append(message);
-            sendMessage(messageAndName.toString());
-
-
-            if (message.isEmpty() || message.equals(" ") || message.equals("\n")) {
-                return;
-            }
+            printInChat(messageAndName.toString());
 
             Service<String> service = new Service<String>() {
                 @Override
@@ -209,10 +209,48 @@ public class MainChat {
         textArea.setText(null);
     }
 
+    public void onKeyPressed(KeyEvent keyEvent) throws IOException {
+        String message = textArea.getText();
+        if (keyEvent.getCode().equals(KeyCode.ENTER)) {
+            if (message.isBlank()){
+                printInChat(null);
+                textArea.setText(null);
+            }else if (message.startsWith("/")) {
+                performAction(message.replaceAll("\n",""));
+                textArea.setText(null);
+            }else {
+                StringBuilder messageAndName = new StringBuilder();
+                messageAndName.append(currentUser.getName());
+                messageAndName.append(" : ").append(message.replaceAll("\n", ""));
+                printInChat(messageAndName.toString());
+
+
+                Service<String> service = new Service<String>() {
+                    @Override
+                    protected Task<String> createTask() {
+                        return new Task<String>() {
+                            @Override
+                            protected String call() throws Exception {
+                                PrintWriter out = new PrintWriter(socket.getOutputStream());
+                                out.write(messageAndName + "\n");
+                                out.flush();
+                                return null;
+                            }
+                        };
+                    }
+                };
+                service.start();
+                textArea.setText(null);
+
+            }
+
+        }
+    }
+
     private void performAction(String message) throws IOException {
         switch (message) {
             case "/commands":
-                sendMessage("The commands are : " + commandList());
+                printInChat("The commands are : " + commandList());
                 break;
             case "/exit":
                 /*Service<Void> service = new Service<Void>() {
@@ -238,7 +276,7 @@ public class MainChat {
 
                 break;
             case "/time":
-                sendMessage("Time is : " + new Date());
+                printInChat("Time is : " + new Date());
                 break;
         }
     }
@@ -247,40 +285,5 @@ public class MainChat {
         return "/commands;/exit;/time";
     }
 
-
-    public void onKeyPressed(KeyEvent keyEvent) throws IOException {
-        String message = textArea.getText();
-            if (keyEvent.getCode().equals(KeyCode.ENTER)) {
-                if (message.startsWith("/")) {
-                    performAction(message.replaceAll("\n",""));
-                    textArea.setText(null);
-                }else {
-                StringBuilder messageAndName = new StringBuilder();
-                messageAndName.append(currentUser.getName());
-                messageAndName.append(" : ").append(message.replaceAll("\n", ""));
-                sendMessage(messageAndName.toString());
-
-
-                Service<String> service = new Service<String>() {
-                    @Override
-                    protected Task<String> createTask() {
-                        return new Task<String>() {
-                            @Override
-                            protected String call() throws Exception {
-                                PrintWriter out = new PrintWriter(socket.getOutputStream());
-                                out.write(messageAndName + "\n");
-                                out.flush();
-                                return null;
-                            }
-                        };
-                    }
-                };
-                service.start();
-                textArea.setText(null);
-
-            }
-
-        }
-    }
 
 }

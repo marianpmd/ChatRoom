@@ -21,6 +21,7 @@ public class MessagingManager {
             @Override
             public void run() {
                 while (true) {
+                    if (input.hasNextLine())
                     updateMessageListener(input.nextLine().replaceAll("\n", ""));
                 }
             }
