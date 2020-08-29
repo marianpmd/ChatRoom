@@ -84,8 +84,8 @@ public class ServerThread implements Runnable {
             System.out.println("I got this message from" +socket.getInetAddress() +" : "+received);
             if (received.equals("/exit")){
                 Main.activeClients.remove(this.socket.getInetAddress().toString());
+                System.out.println("User"+this.socket.getInetAddress().toString()+"out!");
                 this.socket.close();
-                System.out.println("User out!");
             }
 
             for (Socket client : Main.activeClients.values()){
