@@ -18,7 +18,6 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -50,9 +49,7 @@ public class MainChat {
 
     private CurrentUser currentUser = new CurrentUser();
     private static Socket socket;
-    private MessagingManager messagingManager;
     private BufferedReader in;
-    private ArrayList<String>messageArray=new ArrayList<>();
 
     private double xOffset = 0;
     private double yOffset = 0;
@@ -82,14 +79,10 @@ public class MainChat {
         Task<String> task = new Task<String>() {
             @Override
             protected String call() throws Exception {
-                System.out.println("Is Fx App Thread : " + Platform.isFxApplicationThread());
                 while (true) {
                     Thread.sleep(1);
-                    if (listener.getValue() == null){
-                        //
-                    }else{
+                    if (listener.getValue() != null) {
                         System.out.println("The message is : " + listener.getValue());
-                        messageArray.add(listener.getValue());
                         Platform.runLater(new Runnable() {
                             @Override
                             public void run() {
