@@ -187,7 +187,6 @@ public class MainChat {
 
 
             if (message.isEmpty() || message.equals(" ") || message.equals("\n")) {
-                event.consume();
                 return;
             }
 
