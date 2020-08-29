@@ -52,19 +52,15 @@ public class Controller {
     private static Socket socket;
     private static boolean wasRegistered = false;
     private static InetAddress address;
+    private static boolean wasSocketInitialized = false;
 
 
     public void initialize() throws InterruptedException, UnknownHostException {
-        address = InetAddress.getByName(DNS);
-        try {
-            socket = new Socket(address, 3999);
-        }catch (IOException e){
-            Alert alert = new Alert(Alert.AlertType.ERROR,"Failed to connect to the server, please restart the application !",ButtonType.OK);
-            alert.initModality(Modality.APPLICATION_MODAL);
-            alert.setTitle("Connection Error");
-            alert.showAndWait();
-            Platform.exit();
-        }
+
+        if (!wasSocketInitialized) {
+           initSocket();
+       }
+
         formatTextField(username);
         formatTextField(password);
         label.setVisible(false);
@@ -75,12 +71,26 @@ public class Controller {
         }
     }
 
+    private void initSocket() {
+        try {
+            address = InetAddress.getByName(DNS);
+            socket = new Socket(address, 3999);
+            wasSocketInitialized= true;
+        }catch (IOException e){
+            Alert alert = new Alert(Alert.AlertType.ERROR,"Failed to connect to the server, please restart the application !",ButtonType.OK);
+            alert.initModality(Modality.APPLICATION_MODAL);
+            alert.setTitle("Connection Error");
+            alert.showAndWait();
+            Platform.exit();
+        }
+    }
+
     public static void setWasRegistered(boolean wasRegistered) {
         Controller.wasRegistered = wasRegistered;
     }
 
-    public static void setSocket() throws IOException {
-        socket = new Socket(address,3999);
+    public static void setSocket(Socket s) throws IOException {
+        socket = s;
     }
 
     static Socket getSocket(){
@@ -157,8 +167,9 @@ public class Controller {
                 } else {
                     System.out.println("Nu exista");
                     try {
-                        setSocket();
-                    } catch (IOException e) {
+                        // TODO: 8/30/2020
+                        //setSocket();
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                     enableButtonsAndFields();
