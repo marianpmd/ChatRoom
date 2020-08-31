@@ -12,10 +12,17 @@ public class PasswordHarsher {
     public PasswordHarsher() {
     }
 
-    public String hash(String password) {
+    public String hashWithSalt(String password){
+        String hashedPassword=hash(password);
+        return hash(hashedPassword + salt);
+
+    }
+
+    private String hash(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+
             StringBuilder hexString = new StringBuilder();
 
             for (int i = 0; i < hash.length; i++) {

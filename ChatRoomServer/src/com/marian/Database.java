@@ -69,7 +69,7 @@ public class Database {
     public boolean isRegisteredForLogin(String username , String password){
         try(PreparedStatement statement = connection.prepareStatement(SELECT_USER_AND_PASSWORD_QUERY)){
             statement.setString(1,username);
-            String hashedPassword = passwordHarsher.hash(password);
+            String hashedPassword = passwordHarsher.hashWithSalt(password);
             statement.setString(2,hashedPassword);
             try(ResultSet results = statement.executeQuery()){
 
@@ -91,7 +91,7 @@ public class Database {
     public boolean checkUserAndAdd(String nickname , String username , String password){
         if (!isRegistered(nickname,username)){
             try(PreparedStatement insertData = connection.prepareStatement(INSERT_USER_QUERY)) {
-                String hashedPassword = passwordHarsher.hash(password);
+                String hashedPassword = passwordHarsher.hashWithSalt(password);
                 insertData.setString(1,nickname);
                 insertData.setString(2,username);
                 insertData.setString(3,hashedPassword);
@@ -122,7 +122,7 @@ public class Database {
 
         try(PreparedStatement getID = connection.prepareStatement(SELECT_ID_FROM_USERS)) {
             getID.setString(1,username);
-            getID.setString(2, passwordHarsher.hash(password));
+            getID.setString(2, passwordHarsher.hashWithSalt(password));
             getID.execute();
             try(ResultSet results = getID.executeQuery() ){
                 int id = results.getInt(1);
@@ -141,7 +141,7 @@ public class Database {
 
         try(PreparedStatement getID = connection.prepareStatement(SELECT_NICKNAME_FROM_USERS)) {
             getID.setString(1,username);
-            getID.setString(2, passwordHarsher.hash(password));
+            getID.setString(2, passwordHarsher.hashWithSalt(password));
             getID.execute();
             try(ResultSet results = getID.executeQuery() ){
                 String value = results.getString(1);

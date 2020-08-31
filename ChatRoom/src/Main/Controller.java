@@ -52,15 +52,13 @@ public class Controller {
     private static Socket socket;
     private static boolean wasRegistered = false;
     private static InetAddress address;
-    private static boolean wasSocketInitialized = false;
+    private static boolean wasSocketInitialized=false;
 
 
     public void initialize() throws InterruptedException, UnknownHostException {
-
-        if (!wasSocketInitialized) {
-           initSocket();
-       }
-
+      if (!wasSocketInitialized) {
+          initSocket();
+      }
         formatTextField(username);
         formatTextField(password);
         label.setVisible(false);
@@ -75,7 +73,7 @@ public class Controller {
         try {
             address = InetAddress.getByName(DNS);
             socket = new Socket(address, 3999);
-            wasSocketInitialized= true;
+            wasSocketInitialized = true;
         }catch (IOException e){
             Alert alert = new Alert(Alert.AlertType.ERROR,"Failed to connect to the server, please restart the application !",ButtonType.OK);
             alert.initModality(Modality.APPLICATION_MODAL);
@@ -89,8 +87,8 @@ public class Controller {
         Controller.wasRegistered = wasRegistered;
     }
 
-    public static void setSocket(Socket s) throws IOException {
-        socket = s;
+    public static void resetSocket() throws IOException {
+        socket = new Socket(address,3999);
     }
 
     static Socket getSocket(){
@@ -167,9 +165,8 @@ public class Controller {
                 } else {
                     System.out.println("Nu exista");
                     try {
-                        // TODO: 8/30/2020
-                        //setSocket();
-                    } catch (Exception e) {
+                        resetSocket();
+                    } catch (IOException e) {
                         e.printStackTrace();
                     }
                     enableButtonsAndFields();

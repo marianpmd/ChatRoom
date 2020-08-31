@@ -40,10 +40,12 @@ public class Register {
     private byte registerRequestProtocol = 1;
     private static Socket socket ;
     private static InetAddress address;
+    private String DNS = "marianchatroom.go.ro";
+
+
 
     public void initialize() throws UnknownHostException {
-        socket= Controller.getSocket();
-
+        socket = Controller.getSocket();
         addTextLimiter(nickName,15);
         addTextLimiter(userName,15);
         addTextLimiter(password,15);
@@ -54,7 +56,7 @@ public class Register {
 
     }
 
-    private static void setSocket() throws IOException {
+    private static void resetSocket() throws IOException {
         socket = new Socket(address,3999);
     }
 
@@ -63,8 +65,6 @@ public class Register {
         Stage previousStage = (Stage) pane.getScene().getWindow();
         Scene scene = new Scene(root,400,450);
         previousStage.setScene(scene);
-
-        Controller.setSocket(socket);
     }
 
     public void onRegisterButtonPress() throws IOException {
@@ -123,8 +123,7 @@ public class Register {
 
                 }else {
                     try {
-                        //// TODO: 8/30/2020
-                        setSocket();
+                        resetSocket();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
