@@ -18,7 +18,6 @@ public class ServerThread implements Runnable {
         this.socket = socket;
         this.database = new Database();
         activeSession = new ActiveSession();
-        this.user=new User();
     }
 
     @Override
@@ -80,7 +79,7 @@ public class ServerThread implements Runnable {
         String received=null;
         while (inputToServer.hasNextLine()) {
             received = inputToServer.nextLine();
-          /*  received = received.replaceAll("\n","");*/
+
             System.out.println("I got this message from" +socket.getInetAddress() +" : "+received);
             if (received.equals("/exit")){
                 Main.activeClients.remove(this.socket.getInetAddress().toString());
@@ -121,8 +120,9 @@ public class ServerThread implements Runnable {
 
             int id =  database.getId(username,password);
             String nickname = database.getNickname(username,password);
-            user.setId(id);
-            user.setName(nickname);
+
+            user = new User(id,nickname);
+
             activeSession.addToSession(id,nickname);
 
             try{
@@ -171,6 +171,7 @@ public class ServerThread implements Runnable {
             try(OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream())){
                 System.out.println("Sending back...");
                 outputFromServer.write(1);
+                outputFromServer.flush();
             }catch (IOException e){
                 e.printStackTrace();
             }
@@ -178,6 +179,7 @@ public class ServerThread implements Runnable {
             System.out.println("User"+userName+"already registered!");
             try(OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream())){
                 outputFromServer.write(0);
+                outputFromServer.flush();
             }catch (IOException e){
                 e.printStackTrace();
             }

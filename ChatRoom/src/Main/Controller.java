@@ -47,7 +47,7 @@ public class Controller {
     @FXML
     private TextArea textArea;
 
-    private static String DNS = "marianchatroom.go.ro";
+    private static String DNS = "mariancr.go.ro";
     private byte loginRequestProtocol = 2;
     private static Socket socket;
     private static boolean wasRegistered = false;
@@ -64,7 +64,7 @@ public class Controller {
         label.setVisible(false);
         progressIndicator.setVisible(false);
         if (wasRegistered){
-            this.label.setText("You have been registered , please log in.");
+            this.label.setText("    You have been registered , please log in.");
             this.label.setVisible(true);
         }
     }
@@ -72,9 +72,16 @@ public class Controller {
     private void initSocket() {
         try {
             address = InetAddress.getByName(DNS);
-            socket = new Socket(address, 3999);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+
+        try {
+            socket = new Socket("localhost", 3333);
             wasSocketInitialized = true;
         }catch (IOException e){
+            e.printStackTrace();
+            System.out.println(e.getMessage());
             Alert alert = new Alert(Alert.AlertType.ERROR,"Failed to connect to the server, please restart the application !",ButtonType.OK);
             alert.initModality(Modality.APPLICATION_MODAL);
             alert.setTitle("Connection Error");
@@ -88,7 +95,7 @@ public class Controller {
     }
 
     public static void resetSocket() throws IOException {
-        socket = new Socket(address,3999);
+        socket = new Socket("localhost",3333);
     }
 
     static Socket getSocket(){
@@ -133,19 +140,19 @@ public class Controller {
                 return new Task<Boolean>() {
                     @Override
                     protected Boolean call() throws Exception {
-                        System.out.println("i started");
-                        //Thread.sleep(2000);
+                        System.out.println("Check Database Service on login : on");
                         return checkDatabase(username, password);
                     }
                 };
             }
         };
         service.start();
+        resetSocket();
         service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent workerStateEvent) {
                 if (service.getValue().equals(true)) {
-                    System.out.println("Exista");
+                    /*System.out.println("Exista");*/
                     Stage closingStage = (Stage) borderPane.getScene().getWindow();
                     closingStage.close();
 
@@ -162,9 +169,11 @@ public class Controller {
                     stage.initStyle(StageStyle.UNDECORATED);
                     stage.show();
 
+
                 } else {
-                    System.out.println("Nu exista");
+                    /*System.out.println("Nu exista");*/
                     try {
+                        System.out.println("Resetare Socket on Login");
                         resetSocket();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -198,13 +207,13 @@ public class Controller {
             out.flush();
             out.write(password + "\n");
             out.flush();
-            System.out.println("i got here");
-            in.mark(1);
-            byte returnedValue = (byte) in.read();
-            System.out.println("I got value : "  + returnedValue);
-            System.out.println("I got value : "  + returnedValue);
-            System.out.println("I got value : "  + returnedValue);
-            in.reset();
+
+            // in.mark(1);
+            int returnedValue =  in.read();
+            // in.reset();
+
+            System.out.println("Login retvalt : "+returnedValue);
+
             return returnedValue == 1;
 
         } catch (IOException e) {

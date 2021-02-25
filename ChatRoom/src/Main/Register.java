@@ -40,7 +40,7 @@ public class Register {
     private byte registerRequestProtocol = 1;
     private static Socket socket ;
     private static InetAddress address;
-    private String DNS = "marianchatroom.go.ro";
+    private String DNS = "marianpetrica.go.ro";
 
 
 
@@ -57,7 +57,7 @@ public class Register {
     }
 
     private static void resetSocket() throws IOException {
-        socket = new Socket(address,3999);
+        socket = new Socket("localhost",3333);
     }
 
     public void onBackButtonPress() throws IOException {
@@ -99,7 +99,7 @@ public class Register {
                 return new Task<Boolean>() {
                     @Override
                     protected Boolean call() throws Exception {
-                        //Thread.sleep(1000);
+                        Thread.sleep(100);
                         return register(nickName, userName, password);
                     }
                 };
@@ -192,7 +192,7 @@ public class Register {
             out.flush();
 
             int returnedVal =  in.read();
-          //  System.out.println("I gotthe value " + returnedVal);
+            System.out.println("Register bool from client : " + returnedVal);
             return returnedVal == 1;
 
 

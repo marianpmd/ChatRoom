@@ -12,17 +12,18 @@ import java.util.concurrent.ConcurrentHashMap;
 
 
 public class Main {
-    public static  ConcurrentHashMap<String , Socket> activeClients = new ConcurrentHashMap<>();
-    public static InetAddress address ;
+    public static ConcurrentHashMap<String , Socket> activeClients = new ConcurrentHashMap<>();
+    public static String address ;
 
 
     public static void main(String[] args) {
         System.out.println("Server online...");
         try{
-        ServerSocket serverSocket = new ServerSocket(3999);
+        ServerSocket serverSocket = new ServerSocket(3333);
         while (true) {
             Socket acceptedClient = serverSocket.accept();
             ServerThread serverThread = new ServerThread(acceptedClient);
+            address = acceptedClient.getInetAddress().toString();
             activeClients.put(acceptedClient.getInetAddress().toString(),acceptedClient);
             Thread thread = new Thread(serverThread);
             thread.start();
