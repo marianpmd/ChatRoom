@@ -23,9 +23,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Scanner;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class MainChat {
     @FXML
@@ -70,7 +69,7 @@ public class MainChat {
             e.printStackTrace();
         }
 
-        printInChat("Welcome to ChatRoom, for a list of commands type /commands. ");
+        printInChat("Welcome to ChatRoom, for a list of commands type /commands. \u2764");
         MessagingManager obs = new MessagingManager(socket);
         Listener listener = new Listener();
         obs.register(listener);
@@ -174,10 +173,12 @@ public class MainChat {
         if (message.isBlank() || message.equals("\n")) {
             printInChat(null);
             textArea.setText(null);
-        }else if (message.startsWith("/")){
+        }else if (message.startsWith("/")) {
             performAction(message);
             textArea.setText(null);
         }else {
+             message= checkForEmotes(message);
+
             StringBuilder messageAndName = new StringBuilder();
             messageAndName.append(currentUser.getName());
             messageAndName.append(" : ").append(message);
@@ -212,6 +213,7 @@ public class MainChat {
                 performAction(message.replaceAll("\n",""));
                 textArea.setText(null);
             }else {
+                message= checkForEmotes(message);
                 StringBuilder messageAndName = new StringBuilder();
                 messageAndName.append(currentUser.getName());
                 messageAndName.append(" : ").append(message.replaceAll("\n", ""));
@@ -238,6 +240,20 @@ public class MainChat {
             }
 
         }
+    }
+
+    private String checkForEmotes(String message) {
+        String replacement = message;
+
+        if (message.contains(":)")){
+            replacement=  message.replace(":)","\u263a");
+        }else if (message.contains(":(")){
+            replacement = message.replace(":(","\u2639");
+        }else if (message.contains("<3")){
+            replacement = message.replace("<3","\u2764");
+        }
+
+        return replacement;
     }
 
     private void performAction(String message) throws IOException {
