@@ -2,8 +2,20 @@ package com.marian;
 
 import java.sql.*;
 
+/**
+ * Clasa care se ocupa de accesul si interoagarea bazei de date asociate aplicatiei
+ *
+ * field-urile public static final String , reprezinta interogarile necesare aplicatiei , astfel fiind scrise ca si constante
+ * ele pot fi schimbate o singura data in cazul in care este nevoie fara sa mai trebuiasca sa se rescrie in diverse locuri
+ */
 public class Database {
+    /**
+     * Obiect ce relaizaeaza conexiunea la baza de date , este necesar un driver JDBC
+     */
     private Connection connection ;
+    /**
+     * Obiect utilizat in criptarea parolelor pentru inserarea si verificarea acestora in baza de date
+     */
     private PasswordHarsher passwordHarsher = new PasswordHarsher();
 
     public static final String DB_NAME= "ChatRoomDatabase.db";
@@ -36,6 +48,11 @@ public class Database {
             " WHERE " + COLUMN_USERNAME +  " =?" + " AND " + COLUMN_PASSWORD + " =?";
 
 
+    /**
+     * Realizeaza conexiune la baza de date , in functie de un CONNECTION_STRING ce contine locaia la care se afla baza de date
+     *
+     * @return true daca conexiunea la baza de date se poate realiza , false in caz contrar
+     */
     public boolean open(){
         try{
             connection = DriverManager.getConnection(CONNECTION_STRING);
@@ -46,7 +63,14 @@ public class Database {
         }
     }
 
-    public boolean isRegistered(String nickname , String username){
+    /**
+     * Functie care verifica daca un utilizator este sau nu inregistrat in baza de date
+     *
+     * @param nickname numele care se afiseaza
+     * @param username numele de utilizator
+     * @return true daca este inregistrat , false in caz contrar
+     */
+    private boolean isRegistered(String nickname , String username){
         try(PreparedStatement insertData = connection.prepareStatement(SELECT_USER_QUERY)) {
             insertData.setString(1,nickname);
             insertData.setString(2,username);
@@ -66,6 +90,13 @@ public class Database {
         return false;
     }
 
+    /**
+     * Functie care verifica daca un utilizator este inregistrat in baza de date , in functie de numele de utilizator si parola
+     *
+     * @param username numele de utilizator
+     * @param password parola
+     * @return true daca este inregistrat , false in caz contrar
+     */
     public boolean isRegisteredForLogin(String username , String password){
         try(PreparedStatement statement = connection.prepareStatement(SELECT_USER_AND_PASSWORD_QUERY)){
             statement.setString(1,username);
@@ -88,6 +119,15 @@ public class Database {
         return false;
     }
 
+    /**
+     * Functie care verifica daca utlilizatorul este eligibil pentru a se conecta si de asemenea , il adauga in baza de date
+     *
+     *
+     * @param nickname numele care se afiseaza
+     * @param username numele de utilizator
+     * @param password parola
+     * @return true daca utilizatorul a fost adaugat , false in caz contrar
+     */
     public boolean checkUserAndAdd(String nickname , String username , String password){
         if (!isRegistered(nickname,username)){
             try(PreparedStatement insertData = connection.prepareStatement(INSERT_USER_QUERY)) {
@@ -108,6 +148,9 @@ public class Database {
     }
 
 
+    /**
+     * Inchiderea conexiunii cu baza de date
+     */
     public void close(){
         try{
             if (connection!=null){

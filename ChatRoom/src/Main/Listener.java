@@ -1,5 +1,8 @@
 package Main;
 
+/**
+ * Listener custom , design pattern folosit pentru comunicarea asincrona intre server si client
+ */
 public class Listener implements MyObs {
     private String value ;
 

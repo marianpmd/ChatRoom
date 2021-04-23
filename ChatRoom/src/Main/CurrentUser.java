@@ -1,5 +1,8 @@
 package Main;
 
+/**
+ * Clasa care retine id-ul si numele userilor conectati la chat
+ */
 public class CurrentUser {
 
         private int id;

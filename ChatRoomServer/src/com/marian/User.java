@@ -2,6 +2,9 @@ package com.marian;
 
 import java.net.Socket;
 
+/**
+ * Un simplu container pentru datele publice ale unui utilizator
+ */
 public final class User {
     private final int id;
     private final String name;

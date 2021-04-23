@@ -1,6 +1,7 @@
 .root{
        -fx-background-color : #033249;
        -fx-background-size : 100%;
+    -fx-border-color: black;
 }
 
 .button{
@@ -8,7 +9,7 @@
 }
 
 .text-area {
-    text-area-background: grey ;
+    text-area-background: #526060;
 }
 
 .text-area .content {

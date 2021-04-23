@@ -5,6 +5,10 @@ import java.io.InputStreamReader;
 import java.net.Socket;
 import java.util.Scanner;
 
+/**
+ * Clasa Observer , responsabila pentru a asculta incontinuu socketul , iar in momentul in care vine un mesaj
+ * se vor apela listener-ul inregistrat pentru a trimite mai departe mesajul
+ */
 public class MessagingManager {
     private String value;
     private Socket socket;
@@ -16,6 +20,9 @@ public class MessagingManager {
         this.input = new Scanner(new InputStreamReader(socket.getInputStream()));
     }
 
+    /**
+     * Se porneste un nou thread care asculta in permananta mesajele de la server
+     */
     public void connect(){
         Thread thread = new Thread(){
             @Override

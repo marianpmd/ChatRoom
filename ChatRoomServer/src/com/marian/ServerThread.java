@@ -7,6 +7,10 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Scanner;
 
+/**
+ * Clasa ce implementeaza interfata Runnable(Thread)
+ * Este un fir de executie , responsabil pentru procesarea request-urilor venite de la client , in functie de protocoale;
+ */
 public class ServerThread implements Runnable {
 
     private Socket socket;
@@ -14,12 +18,22 @@ public class ServerThread implements Runnable {
     static ActiveSession activeSession;
     private User user;
 
+    /**
+     * Initializeaza socketul , baza de date si sesiunea curenta
+     * @param socket socket-ul aferent clientului (adresa ip , input stream , etc..)
+     */
     public ServerThread(Socket socket) {
         this.socket = socket;
         this.database = new Database();
         activeSession = new ActiveSession();
     }
 
+    /**
+     * run() este o functie apelata automat la pornirea unui thread (printr-un apel la start())
+     *
+     * Se asculta inputul venit de la client , si in functie de protocol de ex : 1 pentru inregistare ,
+     * se efectueaza inregistrarea , logarea si trimiterea mesajelor (ce presupune o logare aferenta a clientului)
+     */
     @Override
     public void run() {
         System.out.println("Accepted user : " + socket.getInetAddress());
@@ -48,8 +62,9 @@ public class ServerThread implements Runnable {
                     message(inputToServer);
                     break;
                 default:
-                    System.out.println(Main.activeClients.get(this.socket.getInetAddress().toString()+" has disconnected ."));
-                    Main.activeClients.remove(this.socket.getInetAddress().toString());
+                    //TODO : replace here when in production
+                    /*System.out.println(Main.activeClients.get(this.socket.getInetAddress().toString()+" has disconnected ."));
+                    Main.activeClients.remove(this.socket.getInetAddress().toString());*/
                     break;
 
             }
@@ -60,6 +75,10 @@ public class ServerThread implements Runnable {
 
     }
 
+    /**
+     * Se trimit informatiile precum id-ul si nickename-ul clientului , catre client
+     * @return true daca operatiunea a reusit , false in caz contrar
+     */
     private boolean sendUserData(){
         System.out.println(user.toString());
         try {
@@ -75,6 +94,12 @@ public class ServerThread implements Runnable {
         }
     }
 
+    /**
+     * Handler pentru primirea mesajelor , si distribuirea acestora , la toti clientii logati
+     *
+     * @param inputToServer input stream pentru mesaje
+     * @throws IOException
+     */
     private void message(Scanner inputToServer) throws IOException {
         String received=null;
         while (inputToServer.hasNextLine()) {
@@ -86,8 +111,8 @@ public class ServerThread implements Runnable {
                 System.out.println("User"+this.socket.getInetAddress().toString()+"out!");
                 this.socket.close();
             }
-
-            for (Socket client : Main.activeClients.values()){
+            //TODO : for (Socket client : Main.activeClients.values()){
+            for (Socket client : Main.activeClients){
                 if (!client.isClosed()) {
                     if (!client.equals(this.socket)) {
                         System.out.println("Im printing for : " + client.getInetAddress());
@@ -105,8 +130,16 @@ public class ServerThread implements Runnable {
 
     }
 
+    /**
+     * Handler pentru operatiunea de logare
+     * se deschide baza de date , se realizeaza interogarea corespunzatoare datelor primite
+     * daca rezultatul exista , se trimite confirmarea inapoi la client
+     *
+     * @param inputToServer
+     * @return true daca utilizatorul a fost logat , false in caz contrar
+     * @throws IOException
+     */
     private boolean login(Scanner inputToServer) throws IOException {
-        inputToServer.reset();
         String username = inputToServer.nextLine();
         String password = inputToServer.nextLine();
 
@@ -154,7 +187,14 @@ public class ServerThread implements Runnable {
         return false;
 
     }
-
+    /**
+     * Handler pentru operatiunea de inregistrare
+     * se deschide baza de date , se realizeaza interogarea corespunzatoare datelor primite
+     * daca rezultatul nu exista , se trimite confirmarea inapoi la client si se inregistreaza in baza de date
+     *
+     * @param inputToServer
+     * @return true daca utilizatorul a fost inregistrat , false in caz contrar
+     */
     private boolean register(Scanner inputToServer){
         String nickName = inputToServer.nextLine();
         String userName = inputToServer.nextLine();
@@ -168,8 +208,10 @@ public class ServerThread implements Runnable {
         if(database.checkUserAndAdd(nickName,userName,password)) {
             System.out.println("Adding user data to database " + userName);
 
-            try(OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream())){
+            try{//TODO repl try with resources
+                OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream());
                 System.out.println("Sending back...");
+
                 outputFromServer.write(1);
                 outputFromServer.flush();
             }catch (IOException e){

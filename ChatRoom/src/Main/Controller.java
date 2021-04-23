@@ -24,7 +24,15 @@ import java.net.InetAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
+/**
+ * Controller-ul de baza , este controller-ul aferent primului view si anume cel de Login
+ * Prezinta 2 input fields , si 2 butoane pentru login respectiv transfer la interfata de inregistrare
+ *
+ */
 public class Controller {
+    /**
+     * Pane-ul principal pe care se pun restul componentelor
+     */
     @FXML
     private BorderPane borderPane;
     @FXML
@@ -47,7 +55,14 @@ public class Controller {
     @FXML
     private TextArea textArea;
 
-    private static String DNS = "mariancr.go.ro";
+    /**
+     * Numele de domeniu pe care il folosesc pentru conectarea prin internet
+     */
+    private static String DNS = "localhost";
+
+    /**
+     * Protocolul asociat request-ului de login pentru server
+     */
     private byte loginRequestProtocol = 2;
     private static Socket socket;
     private static boolean wasRegistered = false;
@@ -55,6 +70,13 @@ public class Controller {
     private static boolean wasSocketInitialized=false;
 
 
+    /**
+     * initialize() este prima metoda apelata la nivelul fiecarui controller
+     * In cazul acesta , se ocupa de verificarea si stabilirea conexiunii la server
+     *
+     * @throws InterruptedException
+     * @throws UnknownHostException
+     */
     public void initialize() throws InterruptedException, UnknownHostException {
       if (!wasSocketInitialized) {
           initSocket();
@@ -69,6 +91,11 @@ public class Controller {
         }
     }
 
+    /**
+     * Initializeaza socket-ul cu domeniul dat si portul corespunzator
+     * In cazul in care instantierea socket-ului esueaza (adesea din cauza faptului ca serverul nu raspunde)
+     * se afiseaza o alerta
+     */
     private void initSocket() {
         try {
             address = InetAddress.getByName(DNS);
@@ -77,7 +104,7 @@ public class Controller {
         }
 
         try {
-            socket = new Socket("localhost", 3333);
+            socket = new Socket(DNS, 3333);
             wasSocketInitialized = true;
         }catch (IOException e){
             e.printStackTrace();
@@ -95,13 +122,17 @@ public class Controller {
     }
 
     public static void resetSocket() throws IOException {
-        socket = new Socket("localhost",3333);
+        socket = new Socket(DNS,3333);
     }
 
     static Socket getSocket(){
         return socket;
     }
 
+    /**
+     * Transmite controlul aplicatiei catre controller-ul asociat partii de inregistrare
+     * @throws IOException
+     */
     public void onRegisterClick() throws IOException {
         Parent root = FXMLLoader.load(getClass().getResource("register.fxml"));
         Stage previousStage = (Stage) borderPane.getScene().getWindow();
@@ -111,11 +142,26 @@ public class Controller {
 
     }
 
+    /**
+     * Buton de iesire (x)
+     */
     public void onClick() {
         Stage stage = (Stage) xButton.getScene().getWindow();
         stage.close();
     }
 
+    /**
+     * Se realizeaza o simpla validare a campurilor
+     * Se porneste un fir de executie ce trimite un request de verificare a existentei datelor introduse de
+     * utilizator.
+     * Daca datele corespund , se permite accesul la chat, in caz contrar este afisat un mesaj corespunzator
+     *
+     * De asemenea , la momentul validarii se porneste un progress indicator care este legat dinamic de procesul de validare a datelor
+     * si se ascund camurile cu care se poate interactiona pentru a se evita interferentele.
+     *
+     * @throws IOException
+     * @throws InterruptedException
+     */
     public void onLoginButtonPress() throws IOException, InterruptedException {
         String password = this.password.getText();
         String username = this.username.getText();
@@ -133,6 +179,10 @@ public class Controller {
         this.password.setDisable(true);
         progressIndicator.setVisible(true);
 
+        if (wasRegistered) {
+            resetSocket();
+        }
+
 
         Service<Boolean> service = new Service<Boolean>() {
             @Override
@@ -147,7 +197,6 @@ public class Controller {
             }
         };
         service.start();
-        resetSocket();
         service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent workerStateEvent) {
@@ -171,9 +220,9 @@ public class Controller {
 
 
                 } else {
-                    /*System.out.println("Nu exista");*/
+                    System.out.println("Nu exista");
+                    System.out.println("Resetare Socket on Login");
                     try {
-                        System.out.println("Resetare Socket on Login");
                         resetSocket();
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -196,6 +245,13 @@ public class Controller {
         this.label.setFont(Font.font(14));
     }
 
+    /**
+     * Realizeaza apelul catre server pentru a verifica informatiile de la client
+     *
+     * @param username valoarea din texfield-ul asociat
+     * @param password valoarea din passwordField-ul asociat
+     * @return true daca userul exista si false daca nu exista
+     */
     private boolean checkDatabase(String username, String password) {
         try {
 
@@ -208,9 +264,9 @@ public class Controller {
             out.write(password + "\n");
             out.flush();
 
-            // in.mark(1);
+             //in.mark(1);
             int returnedValue =  in.read();
-            // in.reset();
+             //in.reset();
 
             System.out.println("Login retvalt : "+returnedValue);
 

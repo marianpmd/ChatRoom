@@ -2,22 +2,37 @@ package com.marian;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
 
+/**
+ * Clasa care realizaeaza criptarea parolelor
+ */
 public class PasswordHarsher {
+    /**
+     * Salt ultilizat in criptarea parolelor , ideal este unic fiecatui utilizator si salvat separat
+     */
     private static final String salt="ad3c3ntsal7";
 
     public PasswordHarsher() {
     }
 
+    /**
+     * Realizaeaza criptarea parolei date ca si parametru
+     *
+     * @param password parola
+     * @return parola criptata cu SHA-256
+     */
     public String hashWithSalt(String password){
         String hashedPassword=hash(password);
         return hash(hashedPassword + salt);
 
     }
 
+    /**
+     * Realizeaza criptarea efectiva cu SHA-256 , fara salt a parolei date ca si parametru
+     *
+     * @param password parola
+     * @return parola criptata(String)
+     */
     private String hash(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

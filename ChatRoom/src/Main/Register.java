@@ -37,13 +37,22 @@ public class Register {
     @FXML
     private ProgressIndicator progressIndicator;
 
+    /**
+     * protocol asociat inregistrarii la server
+     */
     private byte registerRequestProtocol = 1;
     private static Socket socket ;
     private static InetAddress address;
-    private String DNS = "marianpetrica.go.ro";
+    /**
+     * Numele domeniului pentru conectare
+     */
+    private static String DNS = "localhost";
 
 
-
+    /**
+     * Se preia starea socketului de la Login si se realizeaza simple restrictii pentru campuri
+     * @throws UnknownHostException
+     */
     public void initialize() throws UnknownHostException {
         socket = Controller.getSocket();
         addTextLimiter(nickName,15);
@@ -57,7 +66,7 @@ public class Register {
     }
 
     private static void resetSocket() throws IOException {
-        socket = new Socket("localhost",3333);
+        socket = new Socket(DNS,3333);
     }
 
     public void onBackButtonPress() throws IOException {
@@ -67,6 +76,15 @@ public class Register {
         previousStage.setScene(scene);
     }
 
+    /**
+     * La apasarea butonului Register se face o simpla validare dupa care
+     * se ascund campurile , se porneste un progress indicator
+     * se porneste un nou thread care face conectiunea cu serverul
+     * la intoarcerea mesajului de la server , se va intoarce controlul la partea de login in cazul in care
+     * utilizatorul nu exista deja , iar daca exista se afiseaza un mesaj corespunzator
+     *
+     * @throws IOException
+     */
     public void onRegisterButtonPress() throws IOException {
 
         String nickName = this.nickName.getText();
@@ -146,13 +164,10 @@ public class Register {
     }
 
     public static void addTextLimiter(final TextField tf, final int maxLength) {
-        tf.textProperty().addListener(new ChangeListener<String>() {
-            @Override
-            public void changed(final ObservableValue<? extends String> ov, final String oldValue, final String newValue) {
-                if (tf.getText().length() > maxLength) {
-                    String s = tf.getText().substring(0, maxLength);
-                    tf.setText(s);
-                }
+        tf.textProperty().addListener((ov, oldValue, newValue) -> {
+            if (tf.getText().length() > maxLength) {
+                String s = tf.getText().substring(0, maxLength);
+                tf.setText(s);
             }
         });
     }
@@ -176,6 +191,17 @@ public class Register {
         textField.setTextFormatter(formatter);
     }
 
+    /**
+     * Se trimite inputul de la utilizator si se verifica la nivelul serverului
+     * daca utiizatorul nu mai exista , este inregistrat
+     * iar in caz contar se afiseaza un mesaj corespunzator
+     *
+     * @param nickName
+     * @param userName
+     * @param password
+     * @return true daca utilizatorul a fost inregistrat , flase in caz contrar
+     * @throws IOException
+     */
     private boolean register(String nickName, String userName,String password) throws IOException {
 
         try {

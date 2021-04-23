@@ -3,6 +3,9 @@ package com.marian;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Utilizat in retinerea informatiilor corespunzatoare clientului
+ */
 public class ActiveSession {
     private HashMap<Integer,String> activeSession ;
 

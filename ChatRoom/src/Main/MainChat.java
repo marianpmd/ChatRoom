@@ -26,6 +26,9 @@ import java.net.Socket;
 import java.util.*;
 import java.util.stream.Stream;
 
+/**
+ * Interfata de chat , unde apar comenzile si mesajele intre utilizatorii curenti
+ */
 public class MainChat {
     @FXML
     private BorderPane borderPane;
@@ -54,6 +57,16 @@ public class MainChat {
     private double yOffset = 0;
 
 
+    /**
+     * La instantierea chat-ului , se stabilesc niste marimi default
+     * se copiaza socketul din Controller pentru a continua comunicarea
+     * se salveaza datele utilizatorului curent de la server.
+     *
+     * De asemenea , aici se realizeaza comunicarea asincrona, unui obiect MessagingManager, ii se inregistreaza
+     * un listener care "asculta" orice mesaj venit de la server , dupa care , sterge orice caracter newline si il afiseaza pe ecran
+     * bineinteles , intr-un thread separat pentru a nu bloca interfata
+     * @throws IOException
+     */
     public void initialize() throws IOException {
         this.vBox.setMinHeight(this.scrollPane.getMinHeight());
         this.vBox.setMinWidth(this.scrollPane.getMinWidth());
@@ -61,6 +74,8 @@ public class MainChat {
         this.textArea.setMinWidth(this.borderPane.getMinWidth() - 40);
         this.textArea.setMinHeight(40.0);
         socket = Controller.getSocket();
+        /*System.out.println("main chat leftover: "+socket.getInputStream().read());
+        System.out.println("main chat leftover: "+socket.getInputStream().read());*/
         this.in=new BufferedReader(new InputStreamReader(socket.getInputStream()));
         Scanner scanner = new Scanner(in);
         try {
@@ -82,12 +97,9 @@ public class MainChat {
                     Thread.sleep(1);
                     if (listener.getValue() != null) {
                         System.out.println("The message is : " + listener.getValue());
-                        Platform.runLater(new Runnable() {
-                            @Override
-                            public void run() {
-                                printInChat(listener.getValue());
-                                listener.setValue(null);
-                            }
+                        Platform.runLater(() -> {
+                            printInChat(listener.getValue());
+                            listener.setValue(null);
                         });
                     }
                 }
@@ -97,21 +109,14 @@ public class MainChat {
         thread.setDaemon(true);
         thread.start();
 
-        top.setOnMousePressed(new EventHandler<MouseEvent>() {
-
-            @Override
-            public void handle(MouseEvent event) {
-                xOffset = event.getSceneX();
-                yOffset = event.getSceneY();
-            }
+        top.setOnMousePressed(event -> {
+            xOffset = event.getSceneX();
+            yOffset = event.getSceneY();
         });
 
-        top.setOnMouseDragged(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent event) {
-                top.getScene().getWindow().setX(event.getScreenX() - xOffset);
-                top.getScene().getWindow().setY(event.getScreenY() - yOffset);
-            }
+        top.setOnMouseDragged(event -> {
+            top.getScene().getWindow().setX(event.getScreenX() - xOffset);
+            top.getScene().getWindow().setY(event.getScreenY() - yOffset);
         });
 
 
@@ -133,6 +138,11 @@ public class MainChat {
             vBox.getChildren().add(label);
         }
     }
+
+    /**
+     * Se salveaza datele corespunzatoare utilizatorului curent
+     * @throws IOException
+     */
     public void requestPublicUserData() throws IOException {
         currentUser.setId(in.read());
         currentUser.setName(in.readLine());
@@ -167,6 +177,13 @@ public class MainChat {
         stage.setIconified(true);
     }
 
+    /**
+     * La apasarea butonului de send , se porneste un nou thread care trimite mesajul catre server
+     * unde mai de parte , acesta o sa fie trimis la toti userii conectati
+     *
+     * @param event
+     * @throws IOException
+     */
     public void onSendButtonPress(ActionEvent event) throws IOException {
         String message = textArea.getText();
 
@@ -203,6 +220,14 @@ public class MainChat {
         textArea.setText(null);
     }
 
+    /**
+     * La apasarea butonului enter, se porneste un nou thread care trimite mesajul catre server
+     *  unde mai de parte , acesta o sa fie trimis la toti userii conectati
+     *
+     *
+     * @param keyEvent
+     * @throws IOException
+     */
     public void onKeyPressed(KeyEvent keyEvent) throws IOException {
         String message = textArea.getText();
         if (keyEvent.getCode().equals(KeyCode.ENTER)) {
@@ -242,6 +267,11 @@ public class MainChat {
         }
     }
 
+    /**
+     * Se cauta in mesaj , expresii corespunzatoare emoticoanelor si dupa sunt transformate in caractere unicode
+     * @param message mesajul trimis de catre utilizator
+     * @return
+     */
     private String checkForEmotes(String message) {
         String replacement = message;
 
@@ -262,21 +292,7 @@ public class MainChat {
                 printInChat("The commands are : " + commandList());
                 break;
             case "/exit":
-                /*Service<Void> service = new Service<Void>() {
-                    @Override
-                    protected Task<Void> createTask() {
-                        return new Task<Void>() {
-                            @Override
-                            protected Void call() throws Exception {
-                                PrintWriter out = new PrintWriter(socket.getOutputStream());
-                                out.write("/exit" + "\n");
-                                out.flush();
-                                return null;
-                            }
-                        };
-                    }
-                };
-                service.start();*/
+
                 PrintWriter out = new PrintWriter(socket.getOutputStream());
                 out.write("/exit" + "\n");
                 out.flush();
