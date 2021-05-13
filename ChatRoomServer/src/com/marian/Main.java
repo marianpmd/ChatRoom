@@ -3,6 +3,9 @@ package com.marian;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +22,7 @@ public class Main {
      * lasata sa se conecteze !!!
      */
     public static Vector<Socket> activeClients = new Vector<>();
+    public static Set<String> online = new HashSet<>();
     //TODO : replace here when in production
     //public static ConcurrentHashMap<String , Socket> activeClients = new ConcurrentHashMap<>();
     public static String address ;
@@ -43,6 +47,7 @@ public class Main {
             Thread thread = new Thread(serverThread);
             thread.start();
             System.out.println(activeClients.toString());
+            System.out.println("online : " + online.toString());
         }
 
         }catch (IOException e){

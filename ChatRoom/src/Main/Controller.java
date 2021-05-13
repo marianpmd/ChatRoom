@@ -197,6 +197,7 @@ public class Controller {
             }
         };
         service.start();
+        resetSocket();
         service.setOnSucceeded(new EventHandler<WorkerStateEvent>() {
             @Override
             public void handle(WorkerStateEvent workerStateEvent) {
@@ -269,6 +270,11 @@ public class Controller {
              //in.reset();
 
             System.out.println("Login retvalt : "+returnedValue);
+
+            if (returnedValue == 3){
+                System.out.println("Already there");
+                return false;
+            }
 
             return returnedValue == 1;
 

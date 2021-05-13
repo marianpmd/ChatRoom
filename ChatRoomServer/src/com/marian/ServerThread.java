@@ -5,6 +5,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.util.Map;
 import java.util.Scanner;
 
 /**
@@ -17,9 +18,11 @@ public class ServerThread implements Runnable {
     private Database database;
     static ActiveSession activeSession;
     private User user;
+    private String username;
 
     /**
      * Initializeaza socketul , baza de date si sesiunea curenta
+     *
      * @param socket socket-ul aferent clientului (adresa ip , input stream , etc..)
      */
     public ServerThread(Socket socket) {
@@ -30,7 +33,7 @@ public class ServerThread implements Runnable {
 
     /**
      * run() este o functie apelata automat la pornirea unui thread (printr-un apel la start())
-     *
+     * <p>
      * Se asculta inputul venit de la client , si in functie de protocol de ex : 1 pentru inregistare ,
      * se efectueaza inregistrarea , logarea si trimiterea mesajelor (ce presupune o logare aferenta a clientului)
      */
@@ -41,23 +44,24 @@ public class ServerThread implements Runnable {
         byte requestType = 0;
         try {
             Scanner inputToServer = new Scanner(new InputStreamReader(socket.getInputStream()));
-            if (inputToServer.hasNextLine()){
-                requestType=Byte.parseByte(inputToServer.nextLine());
+            if (inputToServer.hasNextLine()) {
+                requestType = Byte.parseByte(inputToServer.nextLine());
             }
 
-            switch (requestType){
-                case 1 :
-                    System.out.println("Requested registration by : "+socket.getInetAddress());
+            switch (requestType) {
+                case 1:
+                    System.out.println("Requested registration by : " + socket.getInetAddress());
                     register(inputToServer);
                     break;
-                case 2: System.out.println("Requested login by : "+socket.getInetAddress());
-                    if(login(inputToServer)){
+                case 2:
+                    System.out.println("Requested login by : " + socket.getInetAddress());
+                    if (login(inputToServer)) {
                         System.out.println("Login permitted ..." +
                                 "\nSending data back ...");
                         sendUserData();
-                    }else {
+                    } else {
                         System.out.println("Did not log in");
-                       return;
+                        return;
                     }
                     message(inputToServer);
                     break;
@@ -77,9 +81,10 @@ public class ServerThread implements Runnable {
 
     /**
      * Se trimit informatiile precum id-ul si nickename-ul clientului , catre client
+     *
      * @return true daca operatiunea a reusit , false in caz contrar
      */
-    private boolean sendUserData(){
+    private boolean sendUserData() {
         System.out.println(user.toString());
         try {
             PrintWriter out = new PrintWriter(socket.getOutputStream());
@@ -88,7 +93,7 @@ public class ServerThread implements Runnable {
             out.write(user.getName() + "\n");
             out.flush();
             return true;
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
@@ -101,18 +106,21 @@ public class ServerThread implements Runnable {
      * @throws IOException
      */
     private void message(Scanner inputToServer) throws IOException {
-        String received=null;
+        String received = null;
         while (inputToServer.hasNextLine()) {
             received = inputToServer.nextLine();
 
-            System.out.println("I got this message from" +socket.getInetAddress() +" : "+received);
-            if (received.equals("/exit")){
+            System.out.println("I got this message from" + socket.getInetAddress() + " : " + received);
+            if (received.equals("/exit")) {
                 Main.activeClients.remove(this.socket.getInetAddress().toString());
-                System.out.println("User"+this.socket.getInetAddress().toString()+"out!");
+                Main.online.remove(getUsername());
+                System.out.println("removed : " + getUsername());
+                System.out.println("online : " + Main.online.toString());
+                System.out.println("User" + this.socket.getInetAddress().toString() + "out!");
                 this.socket.close();
             }
             //TODO : for (Socket client : Main.activeClients.values()){
-            for (Socket client : Main.activeClients){
+            for (Socket client : Main.activeClients) {
                 if (!client.isClosed()) {
                     if (!client.equals(this.socket)) {
                         System.out.println("Im printing for : " + client.getInetAddress());
@@ -143,95 +151,124 @@ public class ServerThread implements Runnable {
         String username = inputToServer.nextLine();
         String password = inputToServer.nextLine();
 
-        if (!database.open()){
+        if (!database.open()) {
             System.out.println("Can't open the Database");
             return false;
         }
 
-        if (database.isRegisteredForLogin(username,password)){
-            System.out.println("User "+ username + " has logged in.");
+        setUsername(username);
+        if (Main.online.contains(username)) {
 
-            int id =  database.getId(username,password);
-            String nickname = database.getNickname(username,password);
-
-            user = new User(id,nickname);
-
-            activeSession.addToSession(id,nickname);
-
-            try{
-                PrintWriter outputFromServer = new PrintWriter(socket.getOutputStream());
-                outputFromServer.write(1);
-                outputFromServer.flush();
-                return true;
-
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-        }else {
-            System.out.println("User "+username+ " NOT registered!");
-            try{
+            System.out.println("User " + username + " already logged!");
+            try {
                 PrintWriter outputFromServer = new PrintWriter(socket.getOutputStream());
 
-                outputFromServer.write(0);
+                outputFromServer.write(3);
                 outputFromServer.flush();
 
+                database.close();
+                return false;
 
-            }catch (IOException e){
+
+
+            } catch (IOException e) {
                 e.printStackTrace();
+
             }
         }
 
-        activeSession.printAll();
+            if (database.isRegisteredForLogin(username, password)) {
+                System.out.println("User " + username + " has logged in.");
 
-        database.close();
-        return false;
+                int id = database.getId(username, password);
+                String nickname = database.getNickname(username, password);
 
-    }
-    /**
-     * Handler pentru operatiunea de inregistrare
-     * se deschide baza de date , se realizeaza interogarea corespunzatoare datelor primite
-     * daca rezultatul nu exista , se trimite confirmarea inapoi la client si se inregistreaza in baza de date
-     *
-     * @param inputToServer
-     * @return true daca utilizatorul a fost inregistrat , false in caz contrar
-     */
-    private boolean register(Scanner inputToServer){
-        String nickName = inputToServer.nextLine();
-        String userName = inputToServer.nextLine();
-        String password = inputToServer.nextLine();
+                user = new User(id, nickname);
 
-        if (!database.open()){
-            System.out.println("Can't open the DB!");
+                activeSession.addToSession(id, nickname);
+                Main.online.add(username);
+
+                try {
+                    PrintWriter outputFromServer = new PrintWriter(socket.getOutputStream());
+                    outputFromServer.write(1);
+                    outputFromServer.flush();
+                    return true;
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("User " + username + " NOT registered!");
+                try {
+                    PrintWriter outputFromServer = new PrintWriter(socket.getOutputStream());
+
+                    outputFromServer.write(0);
+                    outputFromServer.flush();
+
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            activeSession.printAll();
+
+            database.close();
+            return false;
+
+        }
+
+        /**
+         * Handler pentru operatiunea de inregistrare
+         * se deschide baza de date , se realizeaza interogarea corespunzatoare datelor primite
+         * daca rezultatul nu exista , se trimite confirmarea inapoi la client si se inregistreaza in baza de date
+         *
+         * @param inputToServer
+         * @return true daca utilizatorul a fost inregistrat , false in caz contrar
+         */
+        private boolean register (Scanner inputToServer){
+            String nickName = inputToServer.nextLine();
+            String userName = inputToServer.nextLine();
+            String password = inputToServer.nextLine();
+
+            if (!database.open()) {
+                System.out.println("Can't open the DB!");
+                return false;
+            }
+
+            if (database.checkUserAndAdd(nickName, userName, password)) {
+                System.out.println("Adding user data to database " + userName);
+
+                try {//TODO repl try with resources
+                    OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream());
+                    System.out.println("Sending back...");
+
+                    outputFromServer.write(1);
+                    outputFromServer.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                System.out.println("User" + userName + "already registered!");
+                try (OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream())) {
+                    outputFromServer.write(0);
+                    outputFromServer.flush();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+
+            database.close();
+
             return false;
         }
 
-        if(database.checkUserAndAdd(nickName,userName,password)) {
-            System.out.println("Adding user data to database " + userName);
-
-            try{//TODO repl try with resources
-                OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream());
-                System.out.println("Sending back...");
-
-                outputFromServer.write(1);
-                outputFromServer.flush();
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-        }else {
-            System.out.println("User"+userName+"already registered!");
-            try(OutputStreamWriter outputFromServer = new OutputStreamWriter(socket.getOutputStream())){
-                outputFromServer.write(0);
-                outputFromServer.flush();
-            }catch (IOException e){
-                e.printStackTrace();
-            }
-            return true;
-        }
-
-        database.close();
-
-        return false;
+    public String getUsername() {
+        return username;
     }
 
-
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }

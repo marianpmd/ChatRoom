@@ -19,7 +19,7 @@ public class Database {
     private PasswordHarsher passwordHarsher = new PasswordHarsher();
 
     public static final String DB_NAME= "ChatRoomDatabase.db";
-    public static final String CONNECTION_STRING = "jdbc:sqlite:C:\\Users\\Marian\\Desktop\\Server-Client App\\ChatRoomServer\\src\\" + DB_NAME;
+    public static final String CONNECTION_STRING = "jdbc:sqlite:src\\" + DB_NAME;
     public static final String TABLE_USERS = "users";
     public static final String COLUMN_ID="id";
     public static final String COLUMN_NICKNAME = "nickname";
